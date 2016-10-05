@@ -1,0 +1,19 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<texture version="1" file="pack.png" type="bitmap" width="0" height="0" pixelformat="RGBA_8888" minfilter="linear" magfilter="linear" wrapt="clamp" wraps="clamp" premultiplyalpha="false">
+	<textureregion id="0" src="BrokenStep.png" x="2" y="5" width="69" height="14" rotated="false" trimmed="false" srcx="0" srcy="0" srcwidth="69" srcheight="14" />
+	<textureregion id="1" src="Clock.png" x="419" y="185" width="69" height="69" rotated="false" trimmed="false" srcx="0" srcy="0" srcwidth="69" srcheight="69" />
+	<textureregion id="2" src="FairySpriteSheet.png" x="338" y="258" width="138" height="138" rotated="false" trimmed="false" srcx="0" srcy="0" srcwidth="138" srcheight="138" />
+	<textureregion id="3" src="Gift.png" x="382" y="86" width="69" height="69" rotated="false" trimmed="false" srcx="0" srcy="0" srcwidth="69" srcheight="69" />
+	<textureregion id="4" src="IornStep.png" x="419" y="167" width="69" height="14" rotated="false" trimmed="false" srcx="0" srcy="0" srcwidth="69" srcheight="14" />
+	<textureregion id="5" src="MainMenuMountain.png" x="160" y="400" width="324" height="103" rotated="false" trimmed="false" srcx="0" srcy="0" srcwidth="324" srcheight="103" />
+	<textureregion id="6" src="MainMenuRateButton.png" x="382" y="44" width="78" height="38" rotated="false" trimmed="false" srcx="0" srcy="0" srcwidth="78" srcheight="38" />
+	<textureregion id="7" src="MainMenuScoreButton.png" x="382" y="2" width="78" height="38" rotated="false" trimmed="false" srcx="0" srcy="0" srcwidth="78" srcheight="38" />
+	<textureregion id="8" src="MainMenuTipsLeft.png" x="455" y="146" width="53" height="17" rotated="false" trimmed="false" srcx="0" srcy="0" srcwidth="53" srcheight="17" />
+	<textureregion id="9" src="MainMenuTipsRight.png" x="455" y="125" width="53" height="17" rotated="false" trimmed="false" srcx="0" srcy="0" srcwidth="53" srcheight="17" />
+	<textureregion id="10" src="MainMenuTitle.png" x="160" y="2" width="218" height="150" rotated="false" trimmed="false" srcx="0" srcy="0" srcwidth="218" srcheight="150" />
+	<textureregion id="11" src="MainMenuTree.png" x="338" y="159" width="77" height="95" rotated="false" trimmed="false" srcx="0" srcy="0" srcwidth="77" srcheight="95" />
+	<textureregion id="12" src="SantaSpriteSheet.png" x="160" y="156" width="174" height="240" rotated="false" trimmed="false" srcx="0" srcy="0" srcwidth="174" srcheight="240" />
+	<textureregion id="13" src="SideBorderLeft.png" x="2" y="23" width="75" height="480" rotated="false" trimmed="false" srcx="0" srcy="0" srcwidth="75" srcheight="480" />
+	<textureregion id="14" src="SideBorderRight.png" x="81" y="23" width="75" height="480" rotated="false" trimmed="false" srcx="0" srcy="0" srcwidth="75" srcheight="480" />
+	<textureregion id="15" src="WoodenStep.png" x="75" y="5" width="69" height="14" rotated="false" trimmed="false" srcx="0" srcy="0" srcwidth="69" srcheight="14" />
+</texture>

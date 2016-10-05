@@ -1,0 +1,15 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<texture version="1" file="pack.png" type="bitmap" width="0" height="0" pixelformat="RGBA_8888" minfilter="linear" magfilter="linear" wrapt="clamp" wraps="clamp" premultiplyalpha="false">
+	<textureregion id="0" src="Clock.png" x="355" y="110" width="104" height="104" rotated="false" trimmed="false" srcx="0" srcy="0" srcwidth="104" srcheight="104" />
+	<textureregion id="1" src="FairySpriteSheet.png" x="244" y="218" width="207" height="207" rotated="false" trimmed="false" srcx="0" srcy="0" srcwidth="207" srcheight="207" />
+	<textureregion id="2" src="Gift.png" x="365" y="2" width="104" height="104" rotated="false" trimmed="false" srcx="0" srcy="0" srcwidth="104" srcheight="104" />
+	<textureregion id="3" src="MainMenuFloor.png" x="2" y="793" width="486" height="61" rotated="false" trimmed="false" srcx="0" srcy="0" srcwidth="486" srcheight="61" />
+	<textureregion id="4" src="MainMenuMountain.png" x="2" y="858" width="486" height="155" rotated="false" trimmed="false" srcx="0" srcy="0" srcwidth="486" srcheight="155" />
+	<textureregion id="5" src="MainMenuRateButton.png" x="2" y="7" width="117" height="58" rotated="false" trimmed="false" srcx="0" srcy="0" srcwidth="117" srcheight="58" />
+	<textureregion id="6" src="MainMenuScoreButton.png" x="123" y="7" width="117" height="58" rotated="false" trimmed="false" srcx="0" srcy="0" srcwidth="117" srcheight="58" />
+	<textureregion id="7" src="MainMenuStartButton.png" x="244" y="9" width="117" height="58" rotated="false" trimmed="false" srcx="0" srcy="0" srcwidth="117" srcheight="58" />
+	<textureregion id="8" src="MainMenuTree.png" x="236" y="71" width="115" height="143" rotated="false" trimmed="false" srcx="0" srcy="0" srcwidth="115" srcheight="143" />
+	<textureregion id="9" src="SantaSpriteSheet.png" x="236" y="429" width="261" height="360" rotated="false" trimmed="false" srcx="0" srcy="0" srcwidth="261" srcheight="360" />
+	<textureregion id="10" src="SideBorderLeft.png" x="2" y="69" width="113" height="720" rotated="false" trimmed="false" srcx="0" srcy="0" srcwidth="113" srcheight="720" />
+	<textureregion id="11" src="SideBorderRight.png" x="119" y="69" width="113" height="720" rotated="false" trimmed="false" srcx="0" srcy="0" srcwidth="113" srcheight="720" />
+</texture>

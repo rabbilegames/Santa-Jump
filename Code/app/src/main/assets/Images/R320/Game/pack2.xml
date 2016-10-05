@@ -1,0 +1,6 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<texture version="1" file="pack2.png" type="bitmap" width="0" height="0" pixelformat="RGBA_8888" minfilter="linear" magfilter="linear" wrapt="clamp" wraps="clamp" premultiplyalpha="false">
+	<textureregion id="0" src="Cloud.png" x="412" y="13" width="60" height="30" rotated="false" trimmed="false" srcx="0" srcy="0" srcwidth="60" srcheight="30" />
+	<textureregion id="1" src="MainMenuFloor.png" x="2" y="2" width="324" height="41" rotated="false" trimmed="false" srcx="0" srcy="0" srcwidth="324" srcheight="41" />
+	<textureregion id="2" src="MainMenuStartButton.png" x="330" y="5" width="78" height="38" rotated="false" trimmed="false" srcx="0" srcy="0" srcwidth="78" srcheight="38" />
+</texture>

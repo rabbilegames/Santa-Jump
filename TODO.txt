@@ -1,0 +1,36 @@
+Sprint - 16hrs / 06/07/2016
+
+Sprite making
+=============
+wooden step - from the beginning
+broken step - from the beginning
+metal step - replece wooden step after 100 marks
+firestep - comes after 50 marks
+
+clock - from the beginning
+gift - from the beginning
+angle - after 50 marks
+
+clouds - from the beginning in the dynamic background layer
+christmams tree with bells starts and all - from sides
+
+Programming
+===========
+attach HUD and implement scores
+game over and restart.
+Create dialogs
+make game over, restart, and back to menu operations
+
+
+
+
+Backlog
+programming
+===========
+rate and score UIs.
+
+Sprite making
+============
+background animations - clouds, stars, brids
+
+

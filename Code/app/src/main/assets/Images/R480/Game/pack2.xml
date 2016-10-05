@@ -1,0 +1,10 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<texture version="1" file="pack2.png" type="bitmap" width="0" height="0" pixelformat="RGBA_8888" minfilter="linear" magfilter="linear" wrapt="clamp" wraps="clamp" premultiplyalpha="false">
+	<textureregion id="0" src="BrokenStep.png" x="2" y="2" width="104" height="22" rotated="false" trimmed="false" srcx="0" srcy="0" srcwidth="104" srcheight="22" />
+	<textureregion id="1" src="Cloud.png" x="332" y="208" width="90" height="45" rotated="false" trimmed="false" srcx="0" srcy="0" srcwidth="90" srcheight="45" />
+	<textureregion id="2" src="IornStep.png" x="110" y="2" width="104" height="22" rotated="false" trimmed="false" srcx="0" srcy="0" srcwidth="104" srcheight="22" />
+	<textureregion id="3" src="MainMenuTipsLeft.png" x="332" y="178" width="80" height="26" rotated="false" trimmed="false" srcx="0" srcy="0" srcwidth="80" srcheight="26" />
+	<textureregion id="4" src="MainMenuTipsRight.png" x="426" y="227" width="80" height="26" rotated="false" trimmed="false" srcx="0" srcy="0" srcwidth="80" srcheight="26" />
+	<textureregion id="5" src="MainMenuTitle.png" x="2" y="28" width="326" height="225" rotated="false" trimmed="false" srcx="0" srcy="0" srcwidth="326" srcheight="225" />
+	<textureregion id="6" src="WoodenStep.png" x="218" y="2" width="104" height="22" rotated="false" trimmed="false" srcx="0" srcy="0" srcwidth="104" srcheight="22" />
+</texture>

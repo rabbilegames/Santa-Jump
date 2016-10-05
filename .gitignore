@@ -1,0 +1,72 @@
+#gedit
+*~
+
+# built application files
+*.apk
+*.ap_
+
+# files for the dex VM
+*.dex
+
+# Java class files
+*.class
+
+# generated files
+gen/
+
+# working files for gedit
+*~
+
+# build script folders
+tmp/
+ext/
+# Excluded ReSharper files
+*.ReSharper.user
+_Resharper.*/
+StyleCop.Cache
+
+# Ecxclude MSTEST result files
+TestResults/
+bin/
+obj/
+
+# Exclude the directory into which Android binaries are built
+*/build/*
+
+# Exclude VS upgrade files
+UpgradeLog.XML
+_UpgradeReport_Files/
+
+# Excluded files
+*.Publish.xml
+*.sln.cache
+~*.docx
+*.scc
+*.vssscc
+*.vspscc
+*.tmp
+*.sln.cache
+*.zip
+*.dll
+*.pdb
+*.user
+*.suo
+*.orig
+
+# Exclude gs.sh folders/files
+/pkg/
+/ext/
+/tmp/
+/build-targets.cfg
+
+# Exclude web publising folders
+PrecompiledWeb/
+
+/Code/Server/PreComServerControllerApps/Release
+/References/PreComExtended/
+/Code/Web/Published/TransportInfoDev
+/Code/Web/TransportInfoWebService/Publish
+*.ncrunchsolution
+*.ncrunchproject
+_NCrunch_*/
+packages/

@@ -1,0 +1,47 @@
+<project name="CaptureScreen" default="capture">
+    <loadtasks assembly="Nant\Nant.Clozaps.Tasks.dll" />
+	<target name="capture">
+		<property name="input" value="0" />
+		<while test="${input!='e' and input!='E'}">
+			<ask prompt="Press any key to capture. 'E' to finish" property="input" readline="false" />
+			<echo message="Capturing..." />
+			<tstamp property="fileName" pattern="yyyyMMdd-HH.mm.ss" verbose="false" />
+			<exec program="adb.exe" verbose="false" >
+				<arg value="shell" />
+				<arg value="screencap -p /sdcard/screen[${fileName}].png" />
+			</exec>
+			<exec program="adb.exe" verbose="false" >
+				<arg value="pull" />
+				<arg value="/sdcard/screen[${fileName}].png" />
+				<arg value="${path::get-full-path('../../ScreenShots')}" />
+			</exec>						
+			<property name="outputFile" value="../../ScreenShots/screen[${fileName}].png" />
+			
+			<call target="rotateImage" />			
+		</while>
+	</target>
+	
+	<target name="rotateImage" >
+		<call target="getSurfaceOrientation" />
+		<property name="rotationAngle" value="0" if="${surfaceOrientation == '0'}" />
+		<property name="rotationAngle" value="-90" if="${surfaceOrientation == '1'}" />
+		<property name="rotationAngle" value="180" if="${surfaceOrientation == '2'}" />
+		<property name="rotationAngle" value="90" if="${surfaceOrientation == '3'}" />
+	
+		<exec program="ImageMagicK\convert.exe" verbose="false" >
+			<arg value="${path::get-full-path(outputFile)}" />
+			<arg value="-rotate &quot;${rotationAngle}&quot;" />
+			<arg value="${path::get-full-path(outputFile)}" />
+		</exec>				
+	</target>
+	
+	<target name="getSurfaceOrientation" >
+		<property name="surfaceOrientationOutputFile" value="${path::get-temp-file-name()}" />
+		<exec program="adb.exe" verbose="false" output="${surfaceOrientationOutputFile}" >
+			<arg value="shell" />
+			<arg value="dumpsys input | grep 'SurfaceOrientation'" />
+		</exec>
+		<loadfile file="${surfaceOrientationOutputFile}" property="surfaceOrientationOutputFileContents" />
+		<property name="surfaceOrientation" value="${string::substring(surfaceOrientationOutputFileContents, 26, 1)}" />		
+	</target>
+</project>

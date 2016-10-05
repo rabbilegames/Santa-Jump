@@ -1,0 +1,241 @@
+<?xml version="1.0"?>
+<project name="PrepareImages" default="prepareImages">
+    <loadtasks assembly="Nant\Nant.Clozaps.Tasks.dll" />
+	
+	<target name="clean">
+        <delete>
+            <fileset>
+                <include name="bin/${basename}-??.exe"/>
+                <include name="bin/${basename}-??.pdb"/>
+            </fileset>
+        </delete>
+    </target>
+
+	<target name="writePackJson">
+		<echo message="Writing ..\Textures\${resolution}\${imageFolder}\pack.json" />
+        <echo file="..\Textures\${resolution}\${imageFolder}\pack.json" append="false">{
+	pot: true,
+	paddingX: 4,
+	paddingY: 4,
+	bleed: true,
+	edgePadding: true,
+	duplicatePadding: true,
+	rotation: false,
+	minWidth: 16,
+	minHeight: 16,
+	maxWidth: ${outputTextureWidthMax},
+	maxHeight: ${outputTextureHeightMax},
+	stripWhitespaceX: false,
+	stripWhitespaceY: false,
+	alphaThreshold: 0,
+	filterMin: Linear,
+	filterMag: Linear,
+	wrapX: ClampToEdge,
+	wrapY: ClampToEdge,
+	format: ${imageFormat},
+	alias: true,
+	outputFormat: ${outputFormat},
+	jpegQuality: 0.9,
+	ignoreBlankImages: true,
+	fast: false,
+	debug: false,
+	combineSubdirectories: false,
+	flattenPaths: true,
+	premultiplyAlpha: false,
+	useIndexes: false
+}</echo>
+    </target>
+	
+	<target name="resizeImages">
+		<property name="imageSourceFolder" value="..\Textures\Orignal" />
+		<property name="imageDestinationFolder" value="..\Textures\R1080" />
+		<property name="resizeScalePercentage" value="100" />
+		<call target="resizeImagesOfFolder" />
+		
+		<property name="imageSourceFolder" value="..\Textures\Orignal" />
+		<property name="imageDestinationFolder" value="..\Textures\R480" />
+		<property name="resizeScalePercentage" value="45" />
+		<call target="resizeImagesOfFolder" />
+		
+		<property name="imageSourceFolder" value="..\Textures\Orignal" />
+		<property name="imageDestinationFolder" value="..\Textures\R320" />
+		<property name="resizeScalePercentage" value="30" />
+		<call target="resizeImagesOfFolder" />
+	</target>
+	
+	<target name="resizeImagesOfFolder">
+		<property name="directoryToDelete" value="${imageDestinationFolder}"/>	
+		<call target="_deleteDirectory"/>
+		<property name="imageSourceFolderAbsolute" value="${path::get-full-path(imageSourceFolder)}" />
+		<foreach item="File" property="srcImageFilePath">
+			<in>
+				<items>
+					<include name="${imageSourceFolder}\**/*.png" />
+				</items>
+			</in>
+			<do>
+				<property name="srcImageFileRelativePath" value="${path::getRelativePath(srcImageFilePath, imageSourceFolderAbsolute)}" />
+				<property name="destImageFilePath" value="${path::get-full-path(path::combine(imageDestinationFolder, srcImageFileRelativePath))}" />
+				<mkdir dir="${directory::get-parent-directory(destImageFilePath)}" />
+				<echo message="Writing: ${destImageFilePath}" />
+				<property name="tileImageSuffix" value="[Tile].png" />
+				<if test="${string::ends-with(srcImageFileRelativePath, tileImageSuffix)}" >
+					<calculateTileSize imagePath="${srcImageFilePath}" resizeScalePercentage="${resizeScalePercentage}"
+						tileCellWidthProperty="tileCellWidth" tileCellHeightProperty="tileCellHeight" />
+					<property name="cropArgs" value="-crop &quot;${tileCellWidth}x${tileCellHeight}&quot;" />
+					<property name="tileNameArgs"
+						value="-set filename:tile &quot;[%[fx:page.y/${tileCellHeight}],%[fx:page.x/${tileCellWidth}]]&quot;" />
+					<property name="fileNameArgs"
+						value="+repage +adjoin &quot;${string::replace(destImageFilePath, tileImageSuffix, '%[filename:tile].png')}&quot;" />
+				</if>
+				<if test="${not string::ends-with(srcImageFileRelativePath, tileImageSuffix)}" >
+					<property name="cropArgs" value="" />
+					<property name="tileNameArgs" value="" />
+					<property name="fileNameArgs" value="${destImageFilePath}" />
+				</if>
+				
+				<exec program="ImageMagicK\convert.exe" verbose="false" >
+					<arg value="${path::get-full-path(srcImageFilePath)}" />
+					<arg value="-resize" />
+					<arg value="${resizeScalePercentage}%" />
+					<arg value="${cropArgs}" />
+					<arg value="-filter" />
+					<arg value="Lanczos" />
+					<arg value="-ordered-dither" />
+					<arg value="o8x8,32,64,32" />
+					<arg value="${tileNameArgs}" />
+					<arg value="${fileNameArgs}" />
+				</exec>
+			</do>
+		</foreach>		 
+	</target>
+	
+	<target name="packImagesOfFolder">
+		<echo message="Packing ..\Textures\${resolution}\${imageFolder}" />
+		<calculateOptimumTextureSize imagesPath="..\Textures\${resolution}\${imageFolder}"
+			maxTextureWidthProperty="outputTextureWidthMax" maxTextureHeightProperty="outputTextureHeightMax" />
+		<echo message="Texture max size = ${outputTextureWidthMax}x${outputTextureHeightMax}" />
+		<call target="writePackJson" />
+        <exec program="java" >
+			<arg value="-classpath" />
+			<arg value="Gdx\gdx.jar;Gdx\gdx-tools.jar" />
+			<arg value="com.badlogic.gdx.tools.texturepacker.TexturePacker" />
+			<arg value="..\Textures\${resolution}\${imageFolder}" />
+			<arg value="..\Code\app\src\main\assets\Images\${resolution}\${imageFolder}" />
+		</exec>
+		
+		<generatePackXml file="..\Code\app\src\main\assets\Images\${resolution}\${imageFolder}\pack.atlas"
+			javaIdPrefix="${imageFolder}"
+			javaPackage="com.rabbile.santajump.free.Resources"
+			javaFile="..\Code\app\src\main\java\com\rabbile\santajump\free\Resources\${imageFolder}Ids.java" />
+		<delete file="..\Code\app\src\main\assets\Images\${resolution}\${imageFolder}\pack.atlas" />
+    </target>
+	
+	<target name="packImagesOfResolution">	
+		<!--property name="imageFolder" value="Screens"/>
+        <property name="imageFormat" value="RGBA8888"/>
+		<property name="outputFormat" value="png"/>
+		<call target="packImagesOfFolder" /-->
+		
+        <property name="imageFolder" value="Game"/>
+		<property name="imageFormat" value="RGBA8888"/>
+		<property name="outputFormat" value="png"/>
+		<call target="packImagesOfFolder" />
+		
+		<!--property name="imageFolder" value="WorldCommon"/>
+		<property name="imageFormat" value="RGBA8888"/>
+		<property name="outputFormat" value="png"/>
+		<call target="packImagesOfFolder" />
+		
+		<property name="imageFolder" value="World0"/>
+		<property name="imageFormat" value="RGBA8888"/>
+		<property name="outputFormat" value="png"/>
+		<call target="packImagesOfFolder" /-->
+    </target>
+	
+	<target name="packImages">
+		<property name="resolution" value="R1080"/>
+		<call target="packImagesOfResolution" />
+		
+		<property name="resolution" value="R480"/>
+		<call target="packImagesOfResolution" />
+		
+		<property name="resolution" value="R320"/>
+		<call target="packImagesOfResolution" />
+    </target>
+	
+	<target name="prepareLauncherImages">
+		<property name="launcherImageSource" value="..\Textures\Launcher\peraliyan.png"/>
+		
+		<property name="launcherImageSize" value="144x144"/>
+		<property name="launcherImageDestination" value="drawable-xxhdpi"/>
+		<call target="exportLauncherImage" />
+		
+		<property name="launcherImageSize" value="96x96"/>
+		<property name="launcherImageDestination" value="drawable-xhdpi"/>
+		<call target="exportLauncherImage" />
+		
+		<property name="launcherImageSize" value="72x72"/>
+		<property name="launcherImageDestination" value="drawable-hdpi"/>
+		<call target="exportLauncherImage" />
+		
+		<property name="launcherImageSize" value="48x48"/>
+		<property name="launcherImageDestination" value="drawable-mdpi"/>
+		<call target="exportLauncherImage" />
+
+		<property name="launcherImageSize" value="32x32"/>
+		<property name="launcherImageDestination" value="drawable-mdpi"/>
+		<call target="exportLauncherImage" />
+    </target>
+	<target name="exportLauncherImage">
+		<property name="fileName" value="${path::get-file-name(launcherImageSource)}" />
+		<property name="destinationRelativePath" value="..\Source\res\${launcherImageDestination}\${fileName}" />
+		<property name="destinationFullPath" value="${path::get-full-path(destinationRelativePath)}" />
+				
+		<exec program="ImageMagicK\convert.exe" verbose="false" >
+			<arg value="${path::get-full-path(launcherImageSource)}" />
+			<arg value="-resize" />
+			<arg value="${launcherImageSize}" />
+			<arg value="-filter" />
+			<arg value="Lanczos" />
+			<arg value="-ordered-dither" />
+			<arg value="o8x8,32,64,32" />
+			<arg value="${destinationFullPath}" />
+		</exec>
+	</target>
+	
+	<script language="C#" prefix="path" >
+		<references>
+            <include name="System.dll" />
+        </references>
+		<code>
+			<![CDATA[				
+				[Function("getRelativePath")]
+				public string GetRelativePath(string filePath, string baseFolder)
+				{
+					System.Uri pathUri = new System.Uri(filePath);
+					// Folders must end in a slash
+					if (!baseFolder.EndsWith(System.IO.Path.DirectorySeparatorChar.ToString()))
+					{
+						baseFolder += System.IO.Path.DirectorySeparatorChar;
+					}
+					System.Uri folderUri = new System.Uri(baseFolder);
+					return Uri.UnescapeDataString(folderUri.MakeRelativeUri(pathUri).ToString().Replace('/', System.IO.Path.DirectorySeparatorChar));
+				}
+            ]]>
+		</code>
+	</script>
+	
+	<target name="_deleteDirectory" description="Deletes a directory">
+		<delete includeemptydirs="true">
+			<fileset defaultexcludes="false">
+				<include name="${directoryToDelete}\**\*" />
+			</fileset>
+		</delete>
+	</target>
+	
+    <target name="prepareImages" >
+        <call target="resizeImages" />
+		<call target="packImages" />
+    </target>
+</project>
