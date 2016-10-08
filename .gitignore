@@ -70,3 +70,9 @@ PrecompiledWeb/
 *.ncrunchproject
 _NCrunch_*/
 packages/
+Code/.idea/compiler.xml
+Code/.idea/encodings.xml
+Code/.idea/gradle.xml
+Code/.idea/misc.xml
+Code/.idea/modules.xml
+Code/.idea/runConfigurations.xml
