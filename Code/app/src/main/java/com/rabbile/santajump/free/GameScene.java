@@ -345,6 +345,7 @@ public class GameScene extends BaseScene implements IGameSceneServices, IOnScene
 
             float y = MathUtil.NextRand(cloudLowerLimitY, cloudUpperLimitY);
             BaseGameElement cloud = _gameElementPool.obtainPoolItem(Cloud.ID, MathUtil.NextRand(cloudLowerLimitX, cloudUpperLimitX), y);
+            ((Cloud)cloud).transformRandom();
             _staticGameElementsLayer.attachChild(cloud.getEntity());
             _attachedGameElements.add(cloud);
             _lastCloudY = y;
