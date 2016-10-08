@@ -11,6 +11,7 @@ import org.rabbilegames.framework.BaseGameElementPool;
 
 import com.rabbile.santajump.free.Elements.BrokenStep;
 import com.rabbile.santajump.free.Elements.Cloud;
+import com.rabbile.santajump.free.Elements.IronStep;
 import com.rabbile.santajump.free.Elements.Santa;
 import com.rabbile.santajump.free.Elements.SantaJumpGameElementFactory;
 import com.rabbile.santajump.free.Elements.SideBorderLeft;
@@ -79,6 +80,7 @@ public class GameScene extends BaseScene implements IGameSceneServices, IOnScene
 
     private BaseGameElementPool _gameElementPool;
     private List<BaseGameElement> _attachedGameElements = new ArrayList<>();
+
     float _lastSideBarY;
     float _lastCloudY;
     float _lastStepRowY;
@@ -87,6 +89,8 @@ public class GameScene extends BaseScene implements IGameSceneServices, IOnScene
     List<Integer> _solidStepIndexes = new ArrayList<>();
     int _score = 0;
     float _remainingTimeInSeconds = 30;
+    int _limitToShowMetalSteps = 50;
+
 
 
     GameState _gameState = GameState.NotStarted;
@@ -394,13 +398,15 @@ public class GameScene extends BaseScene implements IGameSceneServices, IOnScene
         boolean stepThreeIsSolidStep = solidStepIndexes.contains(3) || forceSolidSteps;
         boolean stepFourIsSolidStep = solidStepIndexes.contains(4) || forceSolidSteps;
 
-        BaseGameElement step2 = stepTwoIsSolidStep ? _gameElementPool.obtainPoolItem(WoodenStep.ID, _cameraWidth / 2 - gap / 2, y)
+        String stepID = _limitToShowMetalSteps >= _score ? WoodenStep.ID : IronStep.ID;
+
+        BaseGameElement step2 = stepTwoIsSolidStep ? _gameElementPool.obtainPoolItem(stepID, _cameraWidth / 2 - gap / 2, y)
                 : _gameElementPool.obtainPoolItem(BrokenStep.ID, _cameraWidth / 2 - gap / 2, y);
-        BaseGameElement step1 = stepOneIsSolidStep ? _gameElementPool.obtainPoolItem(WoodenStep.ID, _cameraWidth / 2 - 3 * gap / 2, y)
+        BaseGameElement step1 = stepOneIsSolidStep ? _gameElementPool.obtainPoolItem(stepID, _cameraWidth / 2 - 3 * gap / 2, y)
                 : _gameElementPool.obtainPoolItem(BrokenStep.ID, _cameraWidth / 2 - 3 * gap / 2, y);
-        BaseGameElement step3 = stepThreeIsSolidStep ? _gameElementPool.obtainPoolItem(WoodenStep.ID, _cameraWidth / 2 + gap / 2, y)
+        BaseGameElement step3 = stepThreeIsSolidStep ? _gameElementPool.obtainPoolItem(stepID, _cameraWidth / 2 + gap / 2, y)
                 : _gameElementPool.obtainPoolItem(BrokenStep.ID, _cameraWidth / 2 + gap / 2, y);
-        BaseGameElement step4 = stepFourIsSolidStep ? _gameElementPool.obtainPoolItem(WoodenStep.ID, _cameraWidth / 2 + 3 * gap / 2, y)
+        BaseGameElement step4 = stepFourIsSolidStep ? _gameElementPool.obtainPoolItem(stepID, _cameraWidth / 2 + 3 * gap / 2, y)
                 : _gameElementPool.obtainPoolItem(BrokenStep.ID, _cameraWidth / 2 + 3 * gap / 2, y);
         _dynamicGameElementsLayer.attachChild(step1.getEntity());
         _dynamicGameElementsLayer.attachChild(step2.getEntity());
@@ -418,11 +424,14 @@ public class GameScene extends BaseScene implements IGameSceneServices, IOnScene
         boolean stepOneIsSolidStep = solidStepIndexes.contains(1) || forceSolidSteps;
         boolean stepTwoIsSolidStep = solidStepIndexes.contains(2) || forceSolidSteps;
         boolean stepThreeIsSolidStep = solidStepIndexes.contains(3) || forceSolidSteps;
-        BaseGameElement step2 = stepTwoIsSolidStep ?  _gameElementPool.obtainPoolItem(WoodenStep.ID, _cameraWidth / 2, y)
+
+        String stepID = _limitToShowMetalSteps >= _score ? WoodenStep.ID : IronStep.ID;
+
+        BaseGameElement step2 = stepTwoIsSolidStep ?  _gameElementPool.obtainPoolItem(stepID, _cameraWidth / 2, y)
                 :  _gameElementPool.obtainPoolItem(BrokenStep.ID, _cameraWidth / 2, y);
-        BaseGameElement step1 = stepOneIsSolidStep ? _gameElementPool.obtainPoolItem(WoodenStep.ID, _cameraWidth / 2 - gap, y)
+        BaseGameElement step1 = stepOneIsSolidStep ? _gameElementPool.obtainPoolItem(stepID, _cameraWidth / 2 - gap, y)
                 : _gameElementPool.obtainPoolItem(BrokenStep.ID, _cameraWidth / 2 - gap, y);
-        BaseGameElement step3 = stepThreeIsSolidStep ? _gameElementPool.obtainPoolItem(WoodenStep.ID, _cameraWidth / 2 + gap, y)
+        BaseGameElement step3 = stepThreeIsSolidStep ? _gameElementPool.obtainPoolItem(stepID, _cameraWidth / 2 + gap, y)
                 : _gameElementPool.obtainPoolItem(BrokenStep.ID, _cameraWidth / 2 + gap, y);
         _dynamicGameElementsLayer.attachChild(step1.getEntity());
         _dynamicGameElementsLayer.attachChild(step2.getEntity());
@@ -444,7 +453,7 @@ public class GameScene extends BaseScene implements IGameSceneServices, IOnScene
             int nextSolidStep =  MathUtil.NextRandBool() ? existingSolidStepIndex : existingSolidStepIndex + 1;
             _solidStepIndexes.clear();
             _solidStepIndexes.add(nextSolidStep);
-            if (provideHelp()){
+            if (canProvideHelp()){
                 //Add another solid step
                 int secondSolidStepIndex = nextSolidStep == existingSolidStepIndex ? existingSolidStepIndex + 1 : existingSolidStepIndex;
                 if (_solidStepIndexes.get(0) > secondSolidStepIndex) {
@@ -477,7 +486,7 @@ public class GameScene extends BaseScene implements IGameSceneServices, IOnScene
                 _solidStepIndexes.clear();
                 _solidStepIndexes.add(nextSolidStepIndex);
 
-                if (provideHelp()){
+                if (canProvideHelp()){
                     //Add another solid step
                     int secondSolidStepIndex = nextSolidStepIndex == existingSolidStepIndex - 1 ? existingSolidStepIndex : existingSolidStepIndex - 1;
                     if (_solidStepIndexes.get(0) > secondSolidStepIndex) {
@@ -490,7 +499,7 @@ public class GameScene extends BaseScene implements IGameSceneServices, IOnScene
         }
     }
 
-    private boolean provideHelp(){
+    private boolean canProvideHelp(){
         //Increase probability when remaining time reaches less than 7 seconds otherwise 20 %
         //Max probability 50%
         if (_remainingTimeInSeconds < 10){

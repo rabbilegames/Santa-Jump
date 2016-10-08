@@ -22,7 +22,7 @@ public class SantaJumpGameElementFactory extends BaseGameElementFactory {
     public BaseGameElement create(String baseGameElementID) {
         switch(baseGameElementID){
             case WoodenStep.ID:
-                return new WoodenStep(_physicsWorld, _gameSceneServices, 0, 0);
+                return new WoodenStep(_physicsWorld, _gameSceneServices);
             case BrokenStep.ID:
                 return new BrokenStep(_physicsWorld, _gameSceneServices);
             case Cloud.ID:
@@ -31,6 +31,8 @@ public class SantaJumpGameElementFactory extends BaseGameElementFactory {
                 return new SideBorderLeft(_physicsWorld, _gameSceneServices);
             case SideBorderRight.ID:
                 return new SideBorderRight(_physicsWorld, _gameSceneServices);
+            case IronStep.ID:
+                return new IronStep(_physicsWorld, _gameSceneServices);
         }
         return null;
     }
