@@ -1,6 +1,14 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <texture version="1" file="pack2.png" type="bitmap" width="0" height="0" pixelformat="RGBA_8888" minfilter="linear" magfilter="linear" wrapt="clamp" wraps="clamp" premultiplyalpha="false">
-	<textureregion id="0" src="Cloud.png" x="412" y="13" width="60" height="30" rotated="false" trimmed="false" srcx="0" srcy="0" srcwidth="60" srcheight="30" />
-	<textureregion id="1" src="MainMenuFloor.png" x="2" y="2" width="324" height="41" rotated="false" trimmed="false" srcx="0" srcy="0" srcwidth="324" srcheight="41" />
-	<textureregion id="2" src="MainMenuStartButton.png" x="330" y="5" width="78" height="38" rotated="false" trimmed="false" srcx="0" srcy="0" srcwidth="78" srcheight="38" />
+	<textureregion id="0" src="Clock.png" x="154" y="5" width="69" height="69" rotated="false" trimmed="false" srcx="0" srcy="0" srcwidth="69" srcheight="69" />
+	<textureregion id="1" src="Cloud.png" x="412" y="47" width="60" height="30" rotated="false" trimmed="false" srcx="0" srcy="0" srcwidth="60" srcheight="30" />
+	<textureregion id="2" src="Gift.png" x="227" y="5" width="69" height="69" rotated="false" trimmed="false" srcx="0" srcy="0" srcwidth="69" srcheight="69" />
+	<textureregion id="3" src="MainMenuFloor.png" x="2" y="78" width="324" height="41" rotated="false" trimmed="false" srcx="0" srcy="0" srcwidth="324" srcheight="41" />
+	<textureregion id="4" src="MainMenuRateButton.png" x="330" y="81" width="78" height="38" rotated="false" trimmed="false" srcx="0" srcy="0" srcwidth="78" srcheight="38" />
+	<textureregion id="5" src="MainMenuScoreButton.png" x="412" y="81" width="78" height="38" rotated="false" trimmed="false" srcx="0" srcy="0" srcwidth="78" srcheight="38" />
+	<textureregion id="6" src="MainMenuStartButton.png" x="330" y="39" width="78" height="38" rotated="false" trimmed="false" srcx="0" srcy="0" srcwidth="78" srcheight="38" />
+	<textureregion id="7" src="MainMenuTipsLeft.png" x="412" y="26" width="53" height="17" rotated="false" trimmed="false" srcx="0" srcy="0" srcwidth="53" srcheight="17" />
+	<textureregion id="8" src="MainMenuTipsRight.png" x="300" y="18" width="53" height="17" rotated="false" trimmed="false" srcx="0" srcy="0" srcwidth="53" srcheight="17" />
+	<textureregion id="9" src="SimpleGameStateRestartButton.png" x="2" y="2" width="72" height="72" rotated="false" trimmed="false" srcx="0" srcy="0" srcwidth="72" srcheight="72" />
+	<textureregion id="10" src="SimpleGameStateResumeButton.png" x="78" y="2" width="72" height="72" rotated="false" trimmed="false" srcx="0" srcy="0" srcwidth="72" srcheight="72" />
 </texture>

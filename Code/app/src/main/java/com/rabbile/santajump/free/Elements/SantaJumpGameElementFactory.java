@@ -33,6 +33,12 @@ public class SantaJumpGameElementFactory extends BaseGameElementFactory {
                 return new SideBorderRight(_physicsWorld, _gameSceneServices);
             case IronStep.ID:
                 return new IronStep(_physicsWorld, _gameSceneServices);
+            case Clock.ID:
+                return new Clock(_physicsWorld, _gameSceneServices);
+            case Gift.ID:
+                return new Gift(_physicsWorld, _gameSceneServices);
+            case Fairy.ID:
+                return new Fairy(_physicsWorld, _gameSceneServices);
         }
         return null;
     }

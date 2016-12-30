@@ -41,26 +41,6 @@ public abstract class BaseGameElement<T extends IShape> implements IUpdateHandle
         _entity.registerUpdateHandler(this);
     }
 
-//    public boolean is_isAttached() {
-//        return _isAttached;
-//    }
-
-//    public void AttchElement() {
-//        this._isAttached = true;
-//        this._entity.setVisible(true);
-//        this._entity.setIgnoreUpdate(false);
-//        this.gameSceneServices.AttachBaseGameElementEntity((IShape) this._entity);
-//    }
-//
-//    public void DetachElement() {
-//        if (this._isAttached) {
-//            this._isAttached = false;
-//            this._entity.setVisible(false);
-//            this._entity.setIgnoreUpdate(true);
-//            this._entity.detachSelf();
-//        }
-//    }
-
     public void Distroy() {
         this._entity.setVisible(false);
         this._entity.detachSelf();
@@ -74,57 +54,25 @@ public abstract class BaseGameElement<T extends IShape> implements IUpdateHandle
 
     @Override
     public void onUpdate(float pSecondsElapsed) {
-//        if (this.gameElementLevelData != null
-//                && this.gameElementLevelData.getTranslationCommands().size() > 0) {
-//            if (this.currentCommandIndex == 0
-//                    && !this.commandInitialized) {
-//                this.currentX = gameElementLevelData.getPositionX();
-//                this.currentY = gameElementLevelData.getPositionY();
-//            }
-//
-//            TranslationCommand currentCommand = this.gameElementLevelData.getTranslationCommands().get(this.currentCommandIndex);
-//
-//            if (commandFinished) {
-//                this.currentCommandIndex = this.gameElementLevelData.getTranslationCommands().size() == this.currentCommandIndex + 1 ? 0 : this.currentCommandIndex + 1;
-//                commandFinished = false;
-//                destinationReached = false;
-//                this.commandInitialized = false;
-//            } else if (destinationReached) {
-//                //wait until timeout complete
-//                this.stoppedTime += pSecondsElapsed;
-//                if (stoppedTime >= currentCommand.getInterval()) {
-//                    this.stoppedTime = 0;
-//                    commandFinished = true;
-//                }
-//            } else if (!this.commandInitialized) {
-//                this.commandInitialized = true;
-//                float length = currentCommand.getDistance();
-//                float theta = MathUtils.degToRad(currentCommand.getAngle());
-//                float velocity = currentCommand.getVelocity();
-//                this.destinationX = (float) (this.currentX + length * Math.sin(theta));
-//                this.destinationY = (float) (this.currentY + length * Math.cos(theta));
-//                this.Vx = (float) (velocity * Math.sin(theta));
-//                this.Vy = (float) (velocity * Math.cos(theta));
-//
-//                //apply velocity
-//                this._body.setLinearVelocity(this.Vx, this.Vy);
-//
-//                this.currentX = this.destinationX;
-//                this.currentY = this.destinationY;
-//            } else {
-//                //translate until destination reach
-//                boolean reachedX = Vx == 0 ? true : (Vx > 0 ? destinationX <= this._entity.getX() : destinationX >= this._entity.getX());
-//                boolean reachedY = Vy == 0 ? true : (Vy >= 0 ? destinationY <= this._entity.getY() : destinationY >= this._entity.getY());
-//                this.destinationReached = reachedX && reachedY;
-//                if (this.destinationReached) {
-//                    this._body.setLinearVelocity(0, 0);
-//                }
-//            }
-//        }
+    }
+
+    public void hideOnRecycle(float x, float y) {
+        setPosition(x, y);
+        _entity.setVisible(false);
+        _entity.setIgnoreUpdate(true);
+        _entity.clearEntityModifiers();
+        _entity.clearUpdateHandlers();
+    }
+
+    public void showOnRecycle(float x, float y){
+        setPosition(x, y);
+        _entity.setVisible(true);
+        _entity.setIgnoreUpdate(false);
     }
 
     @Override
     public void reset() {
+
     }
 
     @Override

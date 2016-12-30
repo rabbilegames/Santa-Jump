@@ -34,21 +34,16 @@ public class BaseGameElementPool{
     public synchronized BaseGameElement obtainPoolItem(String baseGameElementID, final float pX, final float pY) {
         _objectRequestCount++;
         BaseGameElement gameElement = getItemFromPool(baseGameElementID);
-        gameElement.setPosition(pX, pY);
-        gameElement.getEntity().setVisible(true);
-        gameElement.getEntity().setIgnoreUpdate(false);
-        logStatus();
+        gameElement.showOnRecycle(pX, pY);
+        //logStatus();
         return gameElement;
     }
 
     public void handleRecycleItem(BaseGameElement pItem) {
         _recycleCount++;
         putItemToPool(pItem);
-        pItem.getEntity().setVisible(false);
-        pItem.getEntity().setIgnoreUpdate(true);
-        pItem.getEntity().clearEntityModifiers();
-        pItem.getEntity().clearUpdateHandlers();
-        logStatus();
+        pItem.hideOnRecycle(-100, -100);
+        //logStatus();
     }
 
     private void logStatus() {

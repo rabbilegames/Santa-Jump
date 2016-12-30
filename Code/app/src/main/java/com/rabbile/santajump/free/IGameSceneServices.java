@@ -16,9 +16,13 @@ public interface IGameSceneServices {
 
     void onSantaJumpOnWoodenStep();
 
+    HUD GetHUD();
+
     float getCameraWidth();
 
     float getCameraHeight();
 
-    HUD GetHUD();
+    void addTime(int addedTime);
+    void addScore(int score);
+    int getScore();
 }

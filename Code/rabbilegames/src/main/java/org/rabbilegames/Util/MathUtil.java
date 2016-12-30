@@ -259,4 +259,8 @@ public class MathUtil
 			return Math.min(Math.max(y2, y), y1);
 		}
 	}
+
+	public static boolean nextBoolean(double probability) {
+		return NextRand(0, 1) > (1 - probability);
+	}
 }

@@ -6,13 +6,23 @@ import android.content.pm.PackageManager.NameNotFoundException;
 import android.hardware.SensorManager;
 
 import com.badlogic.gdx.math.Vector2;
+
+import org.andengine.engine.handler.timer.ITimerCallback;
+import org.andengine.engine.handler.timer.TimerHandler;
+import org.andengine.extension.physics.box2d.util.constants.PhysicsConstants;
+import com.rabbile.santajump.free.Dialogs.SimpleGameStateDialog;
 import org.rabbilegames.framework.BaseGameElement;
 import org.rabbilegames.framework.BaseGameElementPool;
 
+import com.rabbile.santajump.free.Dialogs.GameOverDialog;
 import com.rabbile.santajump.free.Elements.BrokenStep;
+import com.rabbile.santajump.free.Elements.Clock;
 import com.rabbile.santajump.free.Elements.Cloud;
+import com.rabbile.santajump.free.Elements.Fairy;
+import com.rabbile.santajump.free.Elements.Gift;
 import com.rabbile.santajump.free.Elements.IronStep;
 import com.rabbile.santajump.free.Elements.Santa;
+import com.rabbile.santajump.free.Elements.SantaInteractor;
 import com.rabbile.santajump.free.Elements.SantaJumpGameElementFactory;
 import com.rabbile.santajump.free.Elements.SideBorderLeft;
 import com.rabbile.santajump.free.Elements.SideBorderRight;
@@ -58,6 +68,8 @@ import java.util.List;
 
 
 public class GameScene extends BaseScene implements IGameSceneServices, IOnSceneTouchListener {
+    private boolean _testBool = false;
+
     private final float FLOOR_HEIGHT = 70;
     public static boolean ChileSceneOpened = false;
 
@@ -67,6 +79,7 @@ public class GameScene extends BaseScene implements IGameSceneServices, IOnScene
 
     BaseLayer _mainMenuElementsLayer;
     BaseLayer _staticGameElementsLayer;
+    BaseLayer _santaLayer;
     BaseLayer _dynamicGameElementsLayer;
     GameStatisticsHud _gameHud;
 
@@ -81,6 +94,8 @@ public class GameScene extends BaseScene implements IGameSceneServices, IOnScene
     private BaseGameElementPool _gameElementPool;
     private List<BaseGameElement> _attachedGameElements = new ArrayList<>();
 
+    private float _multipleStepsProbability = .8f;
+
     float _lastSideBarY;
     float _lastCloudY;
     float _lastStepRowY;
@@ -90,10 +105,12 @@ public class GameScene extends BaseScene implements IGameSceneServices, IOnScene
     int _score = 0;
     float _remainingTimeInSeconds = 30;
     int _limitToShowMetalSteps = 50;
-
+    private int _limitToShowAdvancedItems = 50;
 
 
     GameState _gameState = GameState.NotStarted;
+    SimpleGameStateDialog _gameStateDialog;
+
 
     public GameScene(boolean isInTransitionEnabled) {
         _isInTransitionEnabled = isInTransitionEnabled;
@@ -119,6 +136,9 @@ public class GameScene extends BaseScene implements IGameSceneServices, IOnScene
         _staticGameElementsLayer = new BaseLayer();
         this.attachChild(_staticGameElementsLayer);
 
+        _santaLayer = new BaseLayer();
+        this.attachChild(_santaLayer);
+
         _dynamicGameElementsLayer = new BaseLayer();
         this.attachChild(_dynamicGameElementsLayer);
 
@@ -130,7 +150,7 @@ public class GameScene extends BaseScene implements IGameSceneServices, IOnScene
 
         //Create Santa
         _santa = new Santa(_physicsWorld, this, _cameraWidth / 2, FLOOR_HEIGHT + 5 + Santa.SANTA_HEIGHT / 2);
-        _dynamicGameElementsLayer.attachChild(_santa.getEntity());
+        _santaLayer.attachChild(_santa.getEntity());
         _camera.set_chaseEntity(_santa.getEntity());
 
         setTouchAreaBindingOnActionDownEnabled(true);
@@ -222,6 +242,7 @@ public class GameScene extends BaseScene implements IGameSceneServices, IOnScene
     public void onSantaJumpOnFallingStep() {
         _camera.set_chaseEntity(null);
         _gameState = GameState.Failed;
+        showGameOverDialog();
     }
 
     @Override
@@ -243,6 +264,21 @@ public class GameScene extends BaseScene implements IGameSceneServices, IOnScene
     @Override
     public HUD GetHUD() {
         return _gameHud;
+    }
+
+    @Override
+    public void addTime(int addedTime) {
+        _remainingTimeInSeconds += addedTime;
+    }
+
+    @Override
+    public void addScore(int score) {
+        _score += score;
+    }
+
+    @Override
+    public int getScore() {
+        return _score;
     }
 
     @Override
@@ -292,52 +328,101 @@ public class GameScene extends BaseScene implements IGameSceneServices, IOnScene
     @Override
     protected void onManagedUpdate(float pSecondsElapsed) {
         super.onManagedUpdate(pSecondsElapsed);
-        switch (_gameState){
+        switch (_gameState) {
             case Started:
                 populateGameElementsForVisibleRegion();
                 break;
             case Running:
                 populateGameElementsForVisibleRegion();
-                startGameOverTimer(pSecondsElapsed);
-                if (_remainingTimeInSeconds == 0){
+                findNotifyElementInteractions();
+                refreshGameTimer(pSecondsElapsed);
+                if (_remainingTimeInSeconds <= 0) {
                     _gameState = GameState.Passed;
+                    showGameOverDialog();
                 }
                 break;
             case Passed:
                 break;
             case Failed:
                 break;
+            case Paused:
+                break;
         }
     }
 
-    private void startGameOverTimer(float secondsElapsed) {
+    private void showGameOverDialog() {
+        final float timeSpan = 1f;
+        this.registerUpdateHandler(new TimerHandler(timeSpan, new ITimerCallback()
+        {
+            @Override
+            public void onTimePassed(TimerHandler timerHandler)
+            {
+                showGameStateDialog();
+            }
+        }));
+    }
+
+    private void showGameStateDialog()
+    {
+        switch (_gameState)
+        {
+            case Paused:
+                //this.gameStatusScreen = new LevelPausedScreen(this);
+                break;
+            case Failed:
+                _gameStateDialog = new GameOverDialog(this, "Failed");
+                break;
+            case Passed:
+                _gameStateDialog = new GameOverDialog(this, "Time Up");
+            case NotStarted:
+                break;
+            default:
+                break;
+        }
+        _gameStateDialog.setPosition(_camera.getCenterX(), _camera.getCenterY());
+        setChildScene(_gameStateDialog, false, true, true);
+    }
+
+    private void findNotifyElementInteractions() {
+        for (int gameElementIndex = 0; gameElementIndex < _attachedGameElements.size(); gameElementIndex++) {
+            BaseGameElement gameElement = _attachedGameElements.get(gameElementIndex);
+            if (gameElement instanceof SantaInteractor){
+                SantaInteractor santaInteractor = (SantaInteractor)gameElement;
+                if (santaInteractor.getEntity().collidesWith(_santa.getEntity())){
+                    santaInteractor.onSantaHit();
+                }
+            }
+        }
+    }
+
+    private void refreshGameTimer(float secondsElapsed) {
         _remainingTimeInSeconds -= secondsElapsed;
-        _gameHud.setRemainingTime(_remainingTimeInSeconds <= 0 ? 0 : (int)Math.ceil(_remainingTimeInSeconds));
+        _gameHud.setRemainingTime(_remainingTimeInSeconds <= 0 ? 0 : (int) Math.ceil(_remainingTimeInSeconds));
     }
 
     private void populateGameElementsForVisibleRegion() {
-        float maxY=  _camera.getCenterY() + _camera.getHeight() / 2;
+        float maxY = _camera.getCenterY() + _camera.getHeight() / 2;
         float minY = Math.max(_camera.getCenterY() - _camera.getHeight() / 2, FLOOR_HEIGHT);
 
         // Remove Unused game elements
         int attachedGameElementCount = _attachedGameElements.size();
         List<BaseGameElement> detachedGameElements = new ArrayList<>();
-        for (int gameElementIndex = 0; gameElementIndex < attachedGameElementCount; gameElementIndex++){
+        for (int gameElementIndex = 0; gameElementIndex < attachedGameElementCount; gameElementIndex++) {
             BaseGameElement gameElement = _attachedGameElements.get(gameElementIndex);
-            if (gameElement.getEntity().getY() + gameElement.getEntity().getHeight() / 2 < minY){
+            if (gameElement.getEntity().getY() + gameElement.getEntity().getHeight() / 2 < minY) {
                 detachedGameElements.add(gameElement);
             } else {
                 break;
             }
         }
-        for (BaseGameElement gameElementToDetach : detachedGameElements){
+        for (BaseGameElement gameElementToDetach : detachedGameElements) {
             _attachedGameElements.remove(gameElementToDetach);
             gameElementToDetach.getEntity().detachSelf();
             _gameElementPool.handleRecycleItem(gameElementToDetach);
         }
 
         //Add clouds
-        while (_lastCloudY + Cloud.HEIGHT / 2 < maxY){
+        while (_lastCloudY + Cloud.HEIGHT / 2 < maxY) {
             float cloudLowerLimitY = Math.max(_lastCloudY + 3 * Cloud.HEIGHT / 2, _cameraHeight * 2);
             float cloudUpperLimitY = cloudLowerLimitY + Cloud.HEIGHT * 3;
             float cloudLowerLimitX = 0;
@@ -345,17 +430,17 @@ public class GameScene extends BaseScene implements IGameSceneServices, IOnScene
 
             float y = MathUtil.NextRand(cloudLowerLimitY, cloudUpperLimitY);
             BaseGameElement cloud = _gameElementPool.obtainPoolItem(Cloud.ID, MathUtil.NextRand(cloudLowerLimitX, cloudUpperLimitX), y);
-            ((Cloud)cloud).transformRandom();
+            ((Cloud) cloud).transformRandom();
             _staticGameElementsLayer.attachChild(cloud.getEntity());
             _attachedGameElements.add(cloud);
             _lastCloudY = y;
         }
 
         //Add side bars
-        while (_lastSideBarY + SideBorderLeft.HEIGHT / 2 < maxY){
-            _lastSideBarY = _lastSideBarY + SideBorderLeft.HEIGHT / 2 ;
-            BaseGameElement sideBorderLeft = _gameElementPool.obtainPoolItem(SideBorderLeft.ID, _cameraWidth / 2 -  SantaJumpConstants.HORIZONTAL_GAP_BETWEEN_STEPS - _cameraWidth / 2, _lastSideBarY);
-            BaseGameElement sideBorderRight = _gameElementPool.obtainPoolItem(SideBorderRight.ID, _cameraWidth / 2 +  SantaJumpConstants.HORIZONTAL_GAP_BETWEEN_STEPS + _cameraWidth / 2, _lastSideBarY);
+        while (_lastSideBarY + SideBorderLeft.HEIGHT / 2 < maxY) {
+            _lastSideBarY = _lastSideBarY + SideBorderLeft.HEIGHT / 2;
+            BaseGameElement sideBorderLeft = _gameElementPool.obtainPoolItem(SideBorderLeft.ID, _cameraWidth / 2 - SantaJumpConstants.HORIZONTAL_GAP_BETWEEN_STEPS - _cameraWidth / 2, _lastSideBarY);
+            BaseGameElement sideBorderRight = _gameElementPool.obtainPoolItem(SideBorderRight.ID, _cameraWidth / 2 + SantaJumpConstants.HORIZONTAL_GAP_BETWEEN_STEPS + _cameraWidth / 2, _lastSideBarY);
             _staticGameElementsLayer.attachChild(sideBorderLeft.getEntity());
             _staticGameElementsLayer.attachChild(sideBorderRight.getEntity());
             _attachedGameElements.add(sideBorderLeft);
@@ -363,7 +448,7 @@ public class GameScene extends BaseScene implements IGameSceneServices, IOnScene
         }
 
         // Attach game elements
-        if (!_isStepsAttached){
+        if (!_isStepsAttached) {
             _isStepsAttached = true;
             _solidStepIndexes.clear();
             _solidStepIndexes.add(2);
@@ -375,11 +460,12 @@ public class GameScene extends BaseScene implements IGameSceneServices, IOnScene
             _lastStepRowY = y;
         }
 
-        while (_lastStepRowY + StepBase.STEP_BASE_HEIGHT / 2 + SantaJumpConstants.VERTICAL_GAP_BETWEEN_STEPS < maxY){
+
+        while (_lastStepRowY + StepBase.STEP_BASE_HEIGHT / 2 + SantaJumpConstants.VERTICAL_GAP_BETWEEN_STEPS < maxY) {
             // Top level not reached yet, can attach more
             float y = _lastStepRowY + StepBase.STEP_BASE_HEIGHT / 2 + SantaJumpConstants.VERTICAL_GAP_BETWEEN_STEPS;
             _lastStepRowY = y;
-            if (_lastStepRowCount == 4){
+            if (_lastStepRowCount == 4) {
                 updateNextSolidStepsForThreeSteps();
                 attachStepRowOfThree(SantaJumpConstants.HORIZONTAL_GAP_BETWEEN_STEPS, y, _solidStepIndexes, false);
                 _lastStepRowCount = 3;
@@ -401,14 +487,21 @@ public class GameScene extends BaseScene implements IGameSceneServices, IOnScene
 
         String stepID = _limitToShowMetalSteps >= _score ? WoodenStep.ID : IronStep.ID;
 
-        BaseGameElement step2 = stepTwoIsSolidStep ? _gameElementPool.obtainPoolItem(stepID, _cameraWidth / 2 - gap / 2, y)
-                : _gameElementPool.obtainPoolItem(BrokenStep.ID, _cameraWidth / 2 - gap / 2, y);
-        BaseGameElement step1 = stepOneIsSolidStep ? _gameElementPool.obtainPoolItem(stepID, _cameraWidth / 2 - 3 * gap / 2, y)
-                : _gameElementPool.obtainPoolItem(BrokenStep.ID, _cameraWidth / 2 - 3 * gap / 2, y);
-        BaseGameElement step3 = stepThreeIsSolidStep ? _gameElementPool.obtainPoolItem(stepID, _cameraWidth / 2 + gap / 2, y)
-                : _gameElementPool.obtainPoolItem(BrokenStep.ID, _cameraWidth / 2 + gap / 2, y);
-        BaseGameElement step4 = stepFourIsSolidStep ? _gameElementPool.obtainPoolItem(stepID, _cameraWidth / 2 + 3 * gap / 2, y)
-                : _gameElementPool.obtainPoolItem(BrokenStep.ID, _cameraWidth / 2 + 3 * gap / 2, y);
+        Vector2 step2Position = new Vector2(_cameraWidth / 2 - gap / 2, y);
+        BaseGameElement step2 = stepTwoIsSolidStep ? _gameElementPool.obtainPoolItem(stepID, step2Position.x, step2Position.y)
+                : _gameElementPool.obtainPoolItem(BrokenStep.ID, step2Position.x, step2Position.y);
+
+        Vector2 step1Position = new Vector2(_cameraWidth / 2 - 3 * gap / 2, y);
+        BaseGameElement step1 = stepOneIsSolidStep ? _gameElementPool.obtainPoolItem(stepID, step1Position.x, step1Position.y)
+                : _gameElementPool.obtainPoolItem(BrokenStep.ID, step1Position.x, step1Position.y);
+
+        Vector2 step3Position = new Vector2(_cameraWidth / 2 + gap / 2, y);
+        BaseGameElement step3 = stepThreeIsSolidStep ? _gameElementPool.obtainPoolItem(stepID, step3Position.x, step3Position.y)
+                : _gameElementPool.obtainPoolItem(BrokenStep.ID, step3Position.x, step3Position.y);
+
+        Vector2 step4Position = new Vector2(_cameraWidth / 2 + 3 * gap / 2, y);
+        BaseGameElement step4 = stepFourIsSolidStep ? _gameElementPool.obtainPoolItem(stepID, step4Position.x, step4Position.y)
+                : _gameElementPool.obtainPoolItem(BrokenStep.ID, step4Position.x, step4Position.y);
         _dynamicGameElementsLayer.attachChild(step1.getEntity());
         _dynamicGameElementsLayer.attachChild(step2.getEntity());
         _dynamicGameElementsLayer.attachChild(step3.getEntity());
@@ -419,6 +512,7 @@ public class GameScene extends BaseScene implements IGameSceneServices, IOnScene
         _attachedGameElements.add(step4);
 
         //Attach special items if two or more solid steps
+        tryAttachSantaInteractors(solidStepIndexes, step1Position, step2Position, step3Position, step4Position);
     }
 
     private void attachStepRowOfThree(float gap, float y, List<Integer> solidStepIndexes, boolean forceSolidSteps) {
@@ -428,22 +522,79 @@ public class GameScene extends BaseScene implements IGameSceneServices, IOnScene
 
         String stepID = _limitToShowMetalSteps >= _score ? WoodenStep.ID : IronStep.ID;
 
-        BaseGameElement step2 = stepTwoIsSolidStep ?  _gameElementPool.obtainPoolItem(stepID, _cameraWidth / 2, y)
-                :  _gameElementPool.obtainPoolItem(BrokenStep.ID, _cameraWidth / 2, y);
-        BaseGameElement step1 = stepOneIsSolidStep ? _gameElementPool.obtainPoolItem(stepID, _cameraWidth / 2 - gap, y)
-                : _gameElementPool.obtainPoolItem(BrokenStep.ID, _cameraWidth / 2 - gap, y);
-        BaseGameElement step3 = stepThreeIsSolidStep ? _gameElementPool.obtainPoolItem(stepID, _cameraWidth / 2 + gap, y)
-                : _gameElementPool.obtainPoolItem(BrokenStep.ID, _cameraWidth / 2 + gap, y);
+        Vector2 step2Position = new Vector2(_cameraWidth / 2, y);
+        BaseGameElement step2 = stepTwoIsSolidStep ? _gameElementPool.obtainPoolItem(stepID, step2Position.x, step2Position.y)
+                : _gameElementPool.obtainPoolItem(BrokenStep.ID, step2Position.x, step2Position.y);
+
+        Vector2 step1Position = new Vector2(_cameraWidth / 2 - gap, y);
+        BaseGameElement step1 = stepOneIsSolidStep ? _gameElementPool.obtainPoolItem(stepID, step1Position.x, step1Position.y)
+                : _gameElementPool.obtainPoolItem(BrokenStep.ID, step1Position.x, step1Position.y);
+
+        Vector2 step3Position = new Vector2(_cameraWidth / 2 + gap, y);
+        BaseGameElement step3 = stepThreeIsSolidStep ? _gameElementPool.obtainPoolItem(stepID, step3Position.x, step3Position.y)
+                : _gameElementPool.obtainPoolItem(BrokenStep.ID, step3Position.x, step3Position.y);
         _dynamicGameElementsLayer.attachChild(step1.getEntity());
         _dynamicGameElementsLayer.attachChild(step2.getEntity());
         _dynamicGameElementsLayer.attachChild(step3.getEntity());
         _attachedGameElements.add(step1);
         _attachedGameElements.add(step2);
         _attachedGameElements.add(step3);
+
+        tryAttachSantaInteractors(solidStepIndexes, step1Position, step2Position, step3Position);
+    }
+
+    private void tryAttachSantaInteractors(List<Integer> solidStepIndexes, Vector2... stepLocation) {
+        if (solidStepIndexes.size() > 1) {
+            String itemId = "";
+            // there are more than two solid steps. We can place one special item
+            if (canProvideHelp()) {
+                // Add clock
+                itemId = Clock.ID;
+            } else {
+                // Add special item in .75 probability
+                if (_score > 10) {
+                    float selectorProbability = MathUtil.NextRand(0, 1);
+                    if (_score < _limitToShowAdvancedItems) {
+                        // Can show simple items only
+                        if (selectorProbability < .5) {
+                            // Add clock
+                            itemId = Clock.ID;
+                        } else {
+                            // Add gift
+                            itemId = Gift.ID;
+                        }
+                    } else {
+                        // Can show all items
+                        if (selectorProbability < .25) {
+                            // Add clock
+                            itemId = Clock.ID;
+                        } else if (selectorProbability < .5) {
+                            // Add gift
+                            itemId = Gift.ID;
+                        } else if (selectorProbability < .75) {
+                            // Add Fairy
+                            itemId = Fairy.ID;
+                        } else {
+                            // Add fire
+                        }
+                    }
+                }
+            }
+            if (!itemId.isEmpty()) {
+                Vector2 selectedStepLocation = stepLocation[solidStepIndexes.get(MathUtil.NextRandInt(0, solidStepIndexes.size() - 1))];
+                SantaInteractor santaInteractor = (SantaInteractor)_gameElementPool.obtainPoolItem(itemId, selectedStepLocation.x, selectedStepLocation.y);
+                santaInteractor.getBody().setTransform(selectedStepLocation.x / PhysicsConstants.PIXEL_TO_METER_RATIO_DEFAULT,
+                        (selectedStepLocation.y + StepBase.STEP_BASE_HEIGHT / 2 + santaInteractor.getEntity().getHeight() / 2) / PhysicsConstants.PIXEL_TO_METER_RATIO_DEFAULT, 0);
+                _dynamicGameElementsLayer.attachChild(santaInteractor.getEntity());
+                _attachedGameElements.add(santaInteractor);
+
+                santaInteractor.startAnimation();
+            }
+        }
     }
 
     private void updateNextSolidStepsForFourSteps() {
-        if (_solidStepIndexes.size() > 1){
+        if (_solidStepIndexes.size() > 1) {
             // Make this will have only one solid step
             int nextSolidStepIndex = _solidStepIndexes.get(1);
             _solidStepIndexes.clear();
@@ -451,10 +602,10 @@ public class GameScene extends BaseScene implements IGameSceneServices, IOnScene
         } else {
             // This will one or more solid steps
             int existingSolidStepIndex = _solidStepIndexes.get(0);
-            int nextSolidStep =  MathUtil.NextRandBool() ? existingSolidStepIndex : existingSolidStepIndex + 1;
+            int nextSolidStep = MathUtil.nextBoolean(_multipleStepsProbability) ? existingSolidStepIndex : existingSolidStepIndex + 1;
             _solidStepIndexes.clear();
             _solidStepIndexes.add(nextSolidStep);
-            if (canProvideHelp()){
+            if (canProvideHelp()) {
                 //Add another solid step
                 int secondSolidStepIndex = nextSolidStep == existingSolidStepIndex ? existingSolidStepIndex + 1 : existingSolidStepIndex;
                 if (_solidStepIndexes.get(0) > secondSolidStepIndex) {
@@ -467,27 +618,27 @@ public class GameScene extends BaseScene implements IGameSceneServices, IOnScene
     }
 
     private void updateNextSolidStepsForThreeSteps() {
-        if (_solidStepIndexes.size() > 1){
+        if (_solidStepIndexes.size() > 1) {
             // Make this will have only one solid step
             int nextSolidStepIndex = _solidStepIndexes.get(0);
             _solidStepIndexes.clear();
             _solidStepIndexes.add(nextSolidStepIndex);
         } else {
             // This will one or more solid steps
-            if (_solidStepIndexes.contains(1)){
+            if (_solidStepIndexes.contains(1)) {
                 _solidStepIndexes.clear();
                 _solidStepIndexes.add(1);
-            } else if (_solidStepIndexes.contains(4)){
+            } else if (_solidStepIndexes.contains(4)) {
                 _solidStepIndexes.clear();
                 _solidStepIndexes.add(3);
             } else {
                 // if solid step indexes are 2 or three
                 int existingSolidStepIndex = _solidStepIndexes.get(0);
-                int nextSolidStepIndex = MathUtil.NextRandBool() ? existingSolidStepIndex -1 : existingSolidStepIndex;
+                int nextSolidStepIndex = MathUtil.nextBoolean(_multipleStepsProbability) ? existingSolidStepIndex - 1 : existingSolidStepIndex;
                 _solidStepIndexes.clear();
                 _solidStepIndexes.add(nextSolidStepIndex);
 
-                if (canProvideHelp()){
+                if (canProvideHelp()) {
                     //Add another solid step
                     int secondSolidStepIndex = nextSolidStepIndex == existingSolidStepIndex - 1 ? existingSolidStepIndex : existingSolidStepIndex - 1;
                     if (_solidStepIndexes.get(0) > secondSolidStepIndex) {
@@ -500,11 +651,11 @@ public class GameScene extends BaseScene implements IGameSceneServices, IOnScene
         }
     }
 
-    private boolean canProvideHelp(){
+    private boolean canProvideHelp() {
         //Increase probability when remaining time reaches less than 7 seconds otherwise 20 %
         //Max probability 50%
-        if (_remainingTimeInSeconds < 10){
-            int probabilityScore = (int)Math.ceil(_remainingTimeInSeconds);
+        if (_remainingTimeInSeconds < 10) {
+            int probabilityScore = (int) Math.ceil(_remainingTimeInSeconds);
             probabilityScore = probabilityScore <= 5 ? 5 : probabilityScore;
             return MathUtil.NextRandInt(1, 10) > probabilityScore;
         }
@@ -520,7 +671,7 @@ public class GameScene extends BaseScene implements IGameSceneServices, IOnScene
     private void initializeStaticGameLayer() {
         //Attach floor
         float floorWidth = MathUtil.GetScaledWidth(GameResources.Get().MainMenuFloorTR, FLOOR_HEIGHT);
-        for (int index  = 0; index < 3; index++){
+        for (int index = 0; index < 3; index++) {
             Sprite floor = new Sprite(_cameraWidth / 2 + (index - 1) * floorWidth,
                     FLOOR_HEIGHT / 2,
                     floorWidth,
@@ -530,7 +681,7 @@ public class GameScene extends BaseScene implements IGameSceneServices, IOnScene
             _staticGameElementsLayer.attachChild(floor);
         }
         //Create floor Line
-        Line floor = new Line(-_cameraWidth, FLOOR_HEIGHT, 2 *_cameraWidth, FLOOR_HEIGHT, ResourceManager.Get().Vbo);
+        Line floor = new Line(-_cameraWidth, FLOOR_HEIGHT, 2 * _cameraWidth, FLOOR_HEIGHT, ResourceManager.Get().Vbo);
         floor.setColor(Color.TRANSPARENT);
         PhysicsFactory.createLineBody(_physicsWorld, floor, PhysicsFactory.createFixtureDef(1, 0, 0));
         _staticGameElementsLayer.attachChild(floor);
@@ -538,7 +689,7 @@ public class GameScene extends BaseScene implements IGameSceneServices, IOnScene
         //attach mountain
         float mountainHeight = 179;
         float mountainWidth = MathUtil.GetScaledWidth(GameResources.Get().MainMenuMountainTR, mountainHeight);
-        for (int index  = 0; index < 3; index++) {
+        for (int index = 0; index < 3; index++) {
             Sprite mountain = new Sprite(_cameraWidth / 2 + (index - 1) * mountainWidth,
                     mountainHeight / 2 + FLOOR_HEIGHT,
                     mountainWidth,
@@ -602,11 +753,9 @@ public class GameScene extends BaseScene implements IGameSceneServices, IOnScene
         float startButtonHeight = 80;
         _startButton = new GrowButton(_cameraWidth / 2, _cameraHeight * 7 / 12,
                 MathUtil.GetScaledWidth(GameResources.Get().MainMenuStartButtonTR, startButtonHeight), startButtonHeight,
-                GameResources.Get().MainMenuStartButtonTR)
-        {
+                GameResources.Get().MainMenuStartButtonTR) {
             @Override
-            public void onClick()
-            {
+            public void onClick() {
                 // Remove main menu
                 AlphaModifier alphaModifier = new AlphaModifier(.3f, 1, 0, new IEntityModifier.IEntityModifierListener() {
                     @Override
@@ -620,7 +769,7 @@ public class GameScene extends BaseScene implements IGameSceneServices, IOnScene
                         reloadGame();
                         ResourceManager.Get().activity.runOnUpdateThread(new Runnable() {
                             @Override
-                            public void run(){
+                            public void run() {
                                 _mainMenuElementsLayer.detachSelf();
                                 unregisterTouchArea(_scoreButton);
                                 unregisterTouchArea(_startButton);
@@ -642,11 +791,9 @@ public class GameScene extends BaseScene implements IGameSceneServices, IOnScene
         float utilityButtonHeight = 70;
         _rateButton = new GrowButton(_cameraWidth * 3 / 16, _cameraHeight * 7 / 12,
                 MathUtil.GetScaledWidth(GameResources.Get().MainMenuScoreButtonTR, utilityButtonHeight), utilityButtonHeight,
-                GameResources.Get().MainMenuScoreButtonTR)
-        {
+                GameResources.Get().MainMenuScoreButtonTR) {
             @Override
-            public void onClick()
-            {
+            public void onClick() {
                 // Show rate screen
             }
         };
@@ -657,11 +804,9 @@ public class GameScene extends BaseScene implements IGameSceneServices, IOnScene
 
         _scoreButton = new GrowButton(_cameraWidth * 13 / 16, _cameraHeight * 7 / 12,
                 MathUtil.GetScaledWidth(GameResources.Get().MainMenuScoreButtonTR, utilityButtonHeight), utilityButtonHeight,
-                GameResources.Get().MainMenuScoreButtonTR)
-        {
+                GameResources.Get().MainMenuScoreButtonTR) {
             @Override
-            public void onClick()
-            {
+            public void onClick() {
                 // Show score screen
             }
         };
@@ -733,8 +878,8 @@ public class GameScene extends BaseScene implements IGameSceneServices, IOnScene
 
     @Override
     public boolean onSceneTouchEvent(Scene pScene, TouchEvent pSceneTouchEvent) {
-        if (pSceneTouchEvent.isActionDown() && (_gameState == GameState.Started || _gameState == GameState.Running)){
-            if (_gameState == GameState.Started){
+        if (pSceneTouchEvent.isActionDown() && (_gameState == GameState.Started || _gameState == GameState.Running)) {
+            if (_gameState == GameState.Started) {
                 _gameState = GameState.Running;
             }
             if (ResourceManager.Get().camera.getCenterX() >= pSceneTouchEvent.getX()) {
